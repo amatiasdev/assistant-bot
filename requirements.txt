@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlite3
+openai
+pyautogui
+opencv-python
+numpy
+pytesseract
+pyperclip
+paramiko
