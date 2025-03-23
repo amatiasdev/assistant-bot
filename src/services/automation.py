@@ -67,7 +67,7 @@ def esperar_hasta_carga_whatsapp(timeout=10):
 
 
 def abrir_aplicacion(nombre):
-    """Abre una aplicación solo si no está en ejecución y espera hasta que WhatsApp Web cargue."""
+    """Abre una aplicación solo si no está en ejecución y espera hasta que cargue, luego maximiza."""
     if nombre in APPS:
         if not verificar_app_abierta(nombre):
             print(f"🚀 Abriendo {nombre}...")
@@ -75,15 +75,36 @@ def abrir_aplicacion(nombre):
                 os.system(APPS[nombre])  # Usar start whatsapp://
                 if esperar_hasta_carga_whatsapp():  # Esperar hasta que WhatsApp se cargue
                     print("✅ WhatsApp Web cargado correctamente.")
+                    maximizar_ventana("WhatsApp")  # <-- AQUÍ
                 else:
                     print("⚠ No se detectó WhatsApp Web después del tiempo límite.")
             else:
-                os.startfile(APPS[nombre])  # Abrir aplicaciones normales
+                os.startfile(APPS[nombre])  # Abrir otras apps
+                time.sleep(2)  # Darle tiempo a que aparezca la ventana
+                maximizar_ventana(nombre)  # <-- AQUÍ también
         else:
             print(f"✅ {nombre} ya estaba abierto.")
-            traer_ventana_al_frente("whatsApp")
+            traer_ventana_al_frente(nombre)
+            maximizar_ventana(nombre)  # <-- También si ya estaba abierto
+        return True
     else:
         print(f"⚠ No se encontró la ruta para {nombre}.")
+        return False
+
+def maximizar_ventana(nombre_ventana):
+    """Maximiza la ventana si está minimizada o en modo normal."""
+    ventanas = gw.getWindowsWithTitle(nombre_ventana)
+    for ventana in ventanas:
+        if nombre_ventana.lower() in ventana.title.lower():
+            try:
+                ventana.maximize()
+                print(f"🧱 Ventana '{ventana.title}' maximizada.")
+                return True
+            except Exception as e:
+                print(f"❌ No se pudo maximizar la ventana '{ventana.title}': {e}")
+    print(f"⚠ No se encontró ninguna ventana activa con el nombre: {nombre_ventana}")
+    return False
+
 
 
 def traer_ventana_al_frente(nombre_ventana):
@@ -128,72 +149,166 @@ def cerrar_aplicacion(nombre_app):
 
 def buscar_contacto(nombre):
     """Busca un contacto o grupo en WhatsApp Web y lo abre."""
-    if detectar_y_hacer_clic_en_busqueda():
-        time.sleep(1)  # Esperar para asegurarse de que la barra de búsqueda esté activa
-        pyautogui.write(nombre, interval=0.1)
-        time.sleep(1)
-        # TODO keyboard.press("enter")
-        # TODO keyboard.release("enter")
-        print(f"✅ Contacto {nombre} abierto en WhatsApp Web.")
-    else:
-        print("⚠ No se pudo buscar el contacto porque la barra de búsqueda no fue encontrada.")
+
+    """Detecta la barra de búsqueda (vacía o llena), hace clic y borra si es necesario."""
+    imagenes = {
+        "empty": "data/search_bar_empty.png",
+        "filled": "data/search_bar_filled.png",
+        "focus": "data/search_bar_focus.png",
+        "dark_empty": "data/dark_search_bar_empty.png",
+        "dark_filled": "data/dark_search_bar_filled.png",
+        "dark_focus": "data/dark_search_bar_focus.png"
+    }
+
+    resultado = detectar_y_hacer_clic(imagenes)
+
+    if resultado is None:
+        return False
+
+    if "filled" in resultado:
+        print("🗑 Barra de búsqueda detectada con texto. Borrando contenido...")
+        borrar_texto_actual()
+        
+    time.sleep(1)  # Esperar para asegurarse de que la barra de búsqueda esté activa
+    pyautogui.write(nombre, interval=0.1)
+    time.sleep(1)
+    # TODO keyboard.press("enter")
+    # TODO keyboard.release("enter")
+    print(f"✅ Contacto {nombre} abierto en WhatsApp Web.")
+
+def borrar_texto_actual():
+    """Borra el texto que haya en un campo de entrada activo."""
+    time.sleep(0.3)
+    pyautogui.hotkey("ctrl", "a")
+    pyautogui.press("backspace")
+    print("🗑 Texto anterior eliminado.")
 
 SEARCH_BAR_IMAGE = "data/search_bar.png"
 
-def detectar_y_hacer_clic_en_busqueda():
-    """Detecta la barra de búsqueda en WhatsApp Web, ya sea vacía o con texto, hace clic en ella y borra el contenido si es necesario."""
-    print("🔍 Buscando la barra de búsqueda en WhatsApp Web...")
 
-    # Tomar una captura de pantalla
+def detectar_y_hacer_clic(imagenes_dict, threshold=0.75):
+    """
+    Busca imágenes en pantalla y hace clic en la que encuentre con mayor coincidencia.
+    
+    - imagenes_dict: dict[str, str] con {clave: ruta de imagen}
+    - threshold: valor mínimo de coincidencia
+    - return: clave de la imagen detectada, o None si no detecta nada
+    """
+    print("🔍 Buscando imágenes en pantalla...")
+
     screenshot = pyautogui.screenshot()
-    screenshot = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
+    screenshot_cv = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
 
-    # Cargar ambas imágenes de referencia
-    templates = {
-        "empty": cv2.imread("data/search_bar_empty.png", cv2.IMREAD_COLOR),
-        "filled": cv2.imread("data/search_bar_filled.png", cv2.IMREAD_COLOR),
-        "focus": cv2.imread("data/search_bar_focus.png", cv2.IMREAD_COLOR),
-        "dark_empty": cv2.imread("data/dark_search_bar_empty.png", cv2.IMREAD_COLOR),
-        "dark_filled": cv2.imread("data/dark_search_bar_filled.png", cv2.IMREAD_COLOR),
-        "dar_focus": cv2.imread("data/dark_search_bar_focus.png", cv2.IMREAD_COLOR)
-    }
-
-    for key, template in templates.items():
+    for key, path in imagenes_dict.items():
+        template = cv2.imread(path, cv2.IMREAD_COLOR)
         if template is None:
-            print(f"❌ ERROR: No se pudo cargar la imagen de referencia ({key}).")
+            print(f"❌ No se pudo cargar la imagen '{path}'")
             continue
 
-        # Obtener dimensiones de la imagen de referencia
         h, w, _ = template.shape
+        result = cv2.matchTemplate(screenshot_cv, template, cv2.TM_CCOEFF_NORMED)
+        _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
-        # Buscar la imagen en la pantalla actual
-        result = cv2.matchTemplate(screenshot, template, cv2.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+        print(f"🔍 [{key}] Coincidencia: {max_val:.2f}")
 
-        print(f"🔍 [{key}] Nivel de coincidencia: {max_val:.2f}")
-
-        # Verificar si la coincidencia es suficiente
-        if max_val > 0.75:
+        if max_val >= threshold:
             x, y = max_loc
-            click_x, click_y = x + w // 2, y + h // 2  # Hacer clic en el centro de la barra
+            cx, cy = x + w // 2, y + h // 2
 
-            # Dibujar rectángulo de detección y guardar imagen
-            cv2.rectangle(screenshot, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.imwrite("data/detection_result.png", screenshot)
+            cv2.rectangle(screenshot_cv, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.imwrite("data/detection_result.png", screenshot_cv)
 
-            # Simular clic en la barra de búsqueda
-            pyautogui.click(click_x, click_y)
-            print(f"✅ Barra de búsqueda detectada y clickeada en ({click_x}, {click_y}) [{key}]")
+            pyautogui.click(cx, cy)
+            print(f"✅ Imagen '{key}' detectada y clickeada en ({cx}, {cy})")
+            return key  # <-- clave detectada
 
-            # Si la barra estaba llena, borrar el texto
-            if key == "filled":
-                print("🗑 Barra de búsqueda detectada con texto. Borrando contenido...")
-                pyautogui.hotkey("ctrl", "a")  # Seleccionar todo el texto
-                pyautogui.press("backspace")   # Borrar el texto
-                time.sleep(0.5)  # Esperar para asegurar que se borre completamente
+    print("❌ No se detectó ninguna imagen.")
+    cv2.imwrite("data/detection_failed.png", screenshot_cv)
+    return None
 
-            return True
+def detectar_y_hacer_clic_en_zona_con_variantes(imagenes_dict, zona="superior_derecha", threshold=0.75):
+    """
+    Detecta una imagen entre múltiples variantes en una zona específica de la pantalla y hace clic.
+    Dibuja también el punto del clic en data/detection_result.png para depuración visual.
+    """
+    print(f"🔍 Buscando imagen en zona: {zona} con variantes...")
 
-    print("❌ No se pudo detectar la barra de búsqueda en ninguno de los estados. Verifica las imágenes de referencia.")
-    cv2.imwrite("data/detection_failed.png", screenshot)  # Guardar la captura cuando falla
-    return False
+    screenshot = pyautogui.screenshot()
+    full_img = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
+
+    h, w, _ = full_img.shape
+    offset_x, offset_y = 0, 0
+
+    # Zona recortada
+    if zona == "superior_derecha":
+        recorte = full_img[0:150, w-250:w]
+        offset_x = w - 250
+    elif zona == "superior_izquierda":
+        recorte = full_img[0:150, 0:250]
+    else:
+        recorte = full_img
+
+    for variante, ruta in imagenes_dict.items():
+        template = cv2.imread(ruta, cv2.IMREAD_COLOR)
+        if template is None:
+            print(f"❌ No se pudo cargar la imagen: {ruta}")
+            continue
+
+        th, tw, _ = template.shape
+        result = cv2.matchTemplate(recorte, template, cv2.TM_CCOEFF_NORMED)
+        _, max_val, _, max_loc = cv2.minMaxLoc(result)
+
+        print(f"🔍 [{variante}] Coincidencia: {max_val:.2f}")
+
+        if max_val >= threshold:
+            x, y = max_loc
+
+            # Ajustes manuales para centrar clic mejor
+            ajuste_x = -10
+            ajuste_y = 10
+
+            clic_x = offset_x + x + (tw // 2) + ajuste_x
+            clic_y = offset_y + y + (th // 2) + ajuste_y
+
+            # Dibujar detección y punto de clic
+            cv2.rectangle(full_img, (offset_x + x, offset_y + y),
+                          (offset_x + x + tw, offset_y + y + th), (0, 255, 0), 2)
+            cv2.circle(full_img, (clic_x, clic_y), 5, (0, 0, 255), -1)  # punto del clic en rojo
+            cv2.imwrite("data/detection_result.png", full_img)
+
+            pyautogui.click(clic_x, clic_y)
+            print(f"✅ Imagen '{variante}' detectada y clickeada en ({clic_x}, {clic_y})")
+            return variante
+
+    print("❌ Ninguna variante detectada.")
+    cv2.imwrite("data/detection_failed.png", full_img)
+    return None
+
+
+def acceder_perfil(isChromeOpen):
+
+    if isChromeOpen:
+        imagenes = {
+            "opened_white": "data/profile_chrome_opened_white.png",
+            "opened_dark": "data/profile_chrome_opened_dark.png",
+        }
+        detectar_y_hacer_clic_en_zona_con_variantes(imagenes)
+        time.sleep(1)
+        perfiles_aldotk = {
+            "dark": "data/perfil_usuario_dark.png",
+            "light": "data/perfil_usuario_light.png"
+        }
+
+        resultado = detectar_y_hacer_clic_en_zona_con_variantes(perfiles_aldotk, zona="centro", threshold=0.8)
+
+        if resultado:
+            print(f"✅ Perfil 'Aldo (itkeeper.net)' detectado y seleccionado ({resultado})")
+        else:
+            print("❌ No se detectó el perfil deseado.")
+
+    else:
+        
+        imagenes = {
+                "recently_opened": "data/profile_chrome_first_openning_dark.png"
+            }
+        detectar_y_hacer_clic(imagenes)
