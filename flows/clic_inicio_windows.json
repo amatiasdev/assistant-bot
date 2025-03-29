@@ -1,0 +1,11 @@
+[
+  {
+    "tipo": "detectar_imagen",
+    "imagen": {
+      "light_clic_inicio_windows/img_step_1.png": "screenshots/clic_inicio_windows/light/img_step_1.png",
+      "dark_clic_inicio_windows/img_step_1.png": "screenshots/clic_inicio_windows/dark/img_step_1.png"
+    },
+    "descripcion": "Agregar descripcion",
+    "zona": "completa"
+  }
+]

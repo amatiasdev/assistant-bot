@@ -1,0 +1,10 @@
+[
+  {
+    "tipo": "teclear",
+    "texto": "mstsc",
+    "esperar": 1
+  },
+  {
+    "tipo": "enter"
+  }
+]

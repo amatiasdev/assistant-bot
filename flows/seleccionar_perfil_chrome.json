@@ -1,0 +1,11 @@
+[
+  {
+    "tipo": "detectar_imagen",
+    "imagen": {
+      "light_seleccionar_perfil_chrome_img_step_1.png": "screenshots/seleccionar_perfil_chrome/light/img_step_1.png",
+      "dark_seleccionar_perfil_chrome_img_step_1.png": "screenshots/seleccionar_perfil_chrome/dark/img_step_1.png"
+    },
+    "descripcion": "Agregar descripcion",
+    "zona": "completa"
+  }
+]

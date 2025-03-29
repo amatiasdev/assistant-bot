@@ -1,0 +1,16 @@
+[
+  {
+    "tipo": "teclear",
+    "texto": "Chrome",
+    "esperar": 1
+  },
+  {
+    "tipo": "detectar_imagen",
+    "imagen": {
+      "light_abrir_chrome_img_step_1.png": "screenshots/abrir_chrome/light/img_step_1.png",
+      "dark_abrir_chrome_img_step_1.png": "screenshots/abrir_chrome/dark/img_step_1.png"
+    },
+    "descripcion": "Agregar descripcion",
+    "maximizar": true
+  }
+]

@@ -1,0 +1,7 @@
+[
+  {
+    "tipo": "presionar_combinacion",
+    "teclas": ["win", "r"],
+    "descripcion": "Abrir el diálogo 'Ejecutar' de Windows"
+  }
+]

@@ -1,0 +1,7 @@
+[
+  {
+    "tipo": "presionar_combinacion",
+    "teclas": ["ctrl", "t"],
+    "descripcion": "Abrir nueva pestaña en chrome"
+  }
+]

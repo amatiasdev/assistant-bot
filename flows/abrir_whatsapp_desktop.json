@@ -1,0 +1,16 @@
+[
+  {
+    "tipo": "teclear",
+    "texto": "whatsapp",
+    "esperar": 1
+  },
+  {
+    "tipo": "detectar_imagen",
+    "imagen": {
+      "light_abrir_whatsapp_desktop_img_step_1.png": "screenshots/abrir_whatsapp_desktop/light/img_step_1.png",
+      "dark_abrir_whatsapp_desktop_img_step_1.png": "screenshots/abrir_whatsapp_desktop/dark/img_step_1.png"
+    },
+    "descripcion": "Agregar descripcion",
+    "zona": "completa"
+  }
+]

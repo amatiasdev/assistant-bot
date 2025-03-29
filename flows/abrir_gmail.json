@@ -1,0 +1,10 @@
+[
+  {
+    "tipo": "teclear",
+    "texto": "https://mail.google.com/",
+    "esperar": 1
+  },
+  {
+    "tipo": "enter"
+  }
+]
