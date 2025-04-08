@@ -5,42 +5,6 @@ import pygetwindow as gw
 import cv2
 import numpy as np
 
-
-
-
-def esperar_hasta_carga_whatsapp(timeout=10):
-    """Espera hasta que WhatsApp Web esté completamente cargado detectando una imagen de referencia."""
-    print("⏳ Esperando a que WhatsApp Web cargue...")
-
-    WHATSAPP_LOADED_IMAGE = "data/whatsapp_loaded.png"  # Imagen de referencia
-
-    start_time = time.time()
-
-    while time.time() - start_time < timeout:
-        # Tomar una captura de pantalla
-        screenshot = pyautogui.screenshot()
-        screenshot = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
-
-        # Cargar la imagen de referencia
-        template = cv2.imread(WHATSAPP_LOADED_IMAGE, cv2.IMREAD_COLOR)
-
-        if template is None:
-            print("❌ ERROR: No se pudo cargar la imagen de referencia de WhatsApp Web.")
-            return False
-
-        # Buscar la imagen en la pantalla actual
-        result = cv2.matchTemplate(screenshot, template, cv2.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-
-        if max_val > 0.75:  # Si la imagen se detecta con suficiente precisión
-            print("✅ WhatsApp Web detectado, listo para continuar.")
-            return True
-
-        time.sleep(0.5)  # Esperar un poco antes de volver a intentarlo
-
-    print("❌ Tiempo de espera agotado. WhatsApp Web no se detectó.")
-    return False
-
 def maximizar_ventana_activa():
     """Intenta maximizar la ventana actualmente activa."""
     try:
@@ -54,14 +18,6 @@ def maximizar_ventana_activa():
             print("⚠ No se detectó ninguna ventana activa para maximizar.")
     except Exception as e:
         print(f"❌ Error al maximizar ventana: {e}")
-
-def borrar_texto_actual():
-    """Borra el texto que haya en un campo de entrada activo."""
-    time.sleep(0.3)
-    pyautogui.hotkey("ctrl", "a")
-    pyautogui.press("backspace")
-    print("🗑 Texto anterior eliminado.")
-
 
 def detectar_y_hacer_clic_en_zona_con_variantes(imagenes_dict, zona="completa", threshold=0.75):
     """

@@ -11,8 +11,6 @@ def capturar_imagen(flujo):
     contador_imagen += 1
     return nombre_imagen
 
-
-
 def agregar_clic():
     imagen = capturar_imagen()
     acciones.append({"tipo": "clic", "imagen": imagen})
