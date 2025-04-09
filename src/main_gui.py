@@ -1,41 +1,75 @@
-
 import tkinter as tk
-from tkinter import filedialog, messagebox, simpledialog
+from ttkbootstrap import Style
+from ttkbootstrap.constants import *
+from tkinter import PhotoImage
 import os
+from services.flow_trainer_gui import lanzar_creador_flujo
 
-class BotEjecutorGUI:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Bot Ejecutor Inteligente")
-        self.root.geometry("600x400")
+# -------- CONFIGURACIÓN --------
+root = tk.Tk()
+root.title("Bot Ejecutor Inteligente")
+root.geometry("500x600")
+root.resizable(False, False)
 
-        self.crear_interfaz()
+# Tema moderno oscuro
+style = Style("darkly")
+root.configure(bg=style.colors.bg)
 
-    def crear_interfaz(self):
-        tk.Label(self.root, text="✨ Bot Ejecutor Inteligente", font=("Helvetica", 18)).pack(pady=20)
+# -------- ANIMACIÓN ENTRADA --------
+def fade_in(widget, delay=10, alpha=0.0):
+    if alpha < 1.0:
+        alpha += 0.05
+        widget.attributes("-alpha", alpha)
+        root.after(delay, fade_in, widget, delay, alpha)
 
-        tk.Button(self.root, text="+ Crear nuevo flujo", width=30, command=self.crear_nuevo_flujo).pack(pady=10)
-        tk.Button(self.root, text="🧠 Instrucción por texto (GPT)", width=30, command=self.instruccion_por_texto).pack(pady=10)
-        tk.Button(self.root, text="📁 Ejecutar flujo existente", width=30, command=self.ejecutar_flujo).pack(pady=10)
-        tk.Button(self.root, text="⚙️ Configuración", width=30, command=self.configuracion).pack(pady=10)
+root.attributes("-alpha", 0.0)
+fade_in(root)
 
-    def crear_nuevo_flujo(self):
-        messagebox.showinfo("Flujo", "Aquí conectarás el módulo de grabación visual.")
+# -------- CONTENEDOR PRINCIPAL --------
+main_frame = tk.Frame(root, bg=style.colors.bg)
+main_frame.pack(expand=True)
 
-    def instruccion_por_texto(self):
-        instruccion = simpledialog.askstring("GPT", "Escribe la tarea que deseas automatizar:")
-        if instruccion:
-            messagebox.showinfo("Generar JSON", f"GPT generará un flujo para: {instruccion}\n(Aquí conectarás generador_gpt.py)")
+# -------- ICONO --------
+icon_path = os.path.join(os.path.dirname(__file__), "icon_bot.png")
+if os.path.exists(icon_path):
+    bot_icon = PhotoImage(file=icon_path)
+    icon_label = tk.Label(main_frame, image=bot_icon, bg=style.colors.bg)
+    icon_label.pack(pady=(40, 10))
+else:
+    icon_label = tk.Label(main_frame, text="🤖", font=("Segoe UI Emoji", 40), bg=style.colors.bg)
+    icon_label.pack(pady=(40, 10))
 
-    def ejecutar_flujo(self):
-        archivo = filedialog.askopenfilename(title="Selecciona un flujo JSON", filetypes=[("Archivos JSON", "*.json")])
-        if archivo:
-            messagebox.showinfo("Ejecución", f"Ejecutando flujo: {os.path.basename(archivo)}\n(Aquí conectarás flow_executor.py)")
+# -------- TÍTULO --------
+title = tk.Label(main_frame, text="Bot Ejecutor Inteligente", font=("Helvetica", 18, "bold"), fg="white", bg=style.colors.bg)
+title.pack(pady=(0, 30))
 
-    def configuracion(self):
-        messagebox.showinfo("Configuración", "Aquí irá la configuración del bot (API Key, rutas, etc.)")
+# -------- FUNCIÓN PLACEHOLDER --------
+def placeholder(name):
+    print(f"🔘 {name} clickeado")
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = BotEjecutorGUI(root)
-    root.mainloop()
+# -------- BOTONES --------
+botones = [
+    ("+ Crear nuevo flujo", lanzar_creador_flujo),
+    ("Instrucción por texto (GPT)", lambda: placeholder("GPT")),
+    ("Ejecutar flujo existente", lambda: placeholder("Ejecutar flujo")),
+    ("Configuración", lambda: placeholder("Configuración"))
+]
+
+for texto, comando in botones:
+    tk.Button(
+        main_frame,
+        text=texto,
+        font=("Helvetica", 12),
+        width=30,
+        height=2,
+        bg="#246bfd",
+        fg="white",
+        bd=0,
+        relief="flat",
+        activebackground="#1e56c6",
+        activeforeground="white",
+        command=comando,
+        cursor="hand2"
+    ).pack(pady=10)
+
+root.mainloop()

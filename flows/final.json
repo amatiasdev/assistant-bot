@@ -1,0 +1,11 @@
+[
+  {
+    "tipo": "detectar_imagen",
+    "imagen": {
+      "light_final_img_step_1.png": "screenshots/final/light/img_step_1.png",
+      "dark_final_img_step_1.png": "screenshots/final/dark/img_step_1.png"
+    },
+    "descripcion": "Agregar descripcion",
+    "zona": "completa"
+  }
+]
